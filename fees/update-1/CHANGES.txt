@@ -1,0 +1,19 @@
+Ilm Academy fee portal - update 1
+=================================
+From: Usman (developer)
+
+1. New database table "fee_payments" (migration file in this folder).
+   Copy it into database/migrations/ of the project before deploying.
+
+2. Please put the portal in maintenance mode while the migration runs.
+   Parents must never see an error page.
+
+3. To add a test payment after deploying (run ON THE SERVER, in the app folder,
+   as the server admin). HOME=/tmp is needed because tinker wants to save
+   its settings in the user's home folder, and www-data can't write to /var/www:
+
+   sudo -u www-data HOME=/tmp php artisan tinker --execute="DB::table('fee_payments')->insert(['student_name' => 'Ayan Khan', 'class_name' => '7-B', 'amount' => 4500, 'paid_on' => now()->toDateString(), 'created_at' => now(), 'updated_at' => now()]);"
+
+   And to count the payments:
+
+   sudo -u www-data HOME=/tmp php artisan tinker --execute="echo DB::table('fee_payments')->count();"

@@ -1,0 +1,30 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+id_rsa
+id_ed25519
+
+# Node.js
+node_modules/
+npm-debug.log*
+
+# PHP / Laravel
+vendor/
+**/bootstrap/cache/*.php
+**/storage/*.log
+
+# Databases and backups
+*.sqlite
+*.sqlite3
+*.db
+*.sql
+*.sql.gz
+*.bak
+
+# Build and temporary files
+.DS_Store
+*.tmp
+*.swp

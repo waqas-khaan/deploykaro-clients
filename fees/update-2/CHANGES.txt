@@ -1,0 +1,13 @@
+Ilm Academy fee portal - update 2
+=================================
+From: Usman (developer)
+
+A new page, /payments, that lists the latest fee payments. Three files:
+
+  routes-payments.php      add these lines at the END of routes/web.php
+  payments.blade.php       copy to resources/views/payments.blade.php
+  PaymentsPageTest.php     copy to tests/Feature/PaymentsPageTest.php
+                           (an automatic test for the new page)
+
+Please send it through the pipeline as a pull request, like everything else.
+I didn't have time to run the tests myself, sorry!

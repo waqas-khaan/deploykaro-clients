@@ -1,0 +1,12 @@
+{
+  "name": "rickshawgo-api",
+  "version": "2.0.0",
+  "description": "RickshawGo live API",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}

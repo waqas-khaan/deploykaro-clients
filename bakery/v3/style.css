@@ -1,0 +1,14 @@
+body {
+  font-family: Georgia, serif;
+  max-width: 640px;
+  margin: 40px auto;
+  background: #fff8ef;
+  color: #3e2723;
+}
+h1 {
+  color: #b5651d;
+}
+.version {
+  color: #999;
+  font-size: 0.8em;
+}
