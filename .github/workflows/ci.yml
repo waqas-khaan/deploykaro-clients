@@ -1,0 +1,79 @@
+
+name: DeployKaro CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  rickshaw-tests:
+    name: RickshawGo Node.js checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install RickshawGo dependencies
+        working-directory: rickshaw/v2
+        run: npm install --no-audit --no-fund
+
+      - name: Check RickshawGo JavaScript syntax
+        run: node --check rickshaw/v2/server.js
+
+  laravel-tests:
+    name: Ilm Academy Laravel tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: mbstring, pdo_sqlite, sqlite3, xml, curl, bcmath, fileinfo
+          coverage: none
+
+      - name: Install Composer dependencies
+        working-directory: fees/app
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Prepare Laravel testing environment
+        working-directory: fees/app
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Run Laravel tests
+        working-directory: fees/app
+        run: php artisan test
+
+  chaichat-check:
+    name: ChaiChat Python checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Check Python syntax
+        run: python -m py_compile chaichat/chaichat.py
