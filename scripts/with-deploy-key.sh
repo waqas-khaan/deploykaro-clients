@@ -25,4 +25,8 @@ chmod 600 "$TEMP_DIR/.ssh/known_hosts"
 export HOME="$TEMP_DIR"
 ssh-add "$TEMP_DIR/id_deploy"
 
+echo "Checking SSH known_hosts entry..."
+ssh-keygen -F 16.176.178.205 -f "$TEMP_DIR/.ssh/known_hosts"
+echo "Checking SSH target: ${DEPLOY_TARGET:-not set}"
+
 "$@"
