@@ -54,12 +54,16 @@ REMOTE
 
 echo "Checking homepage..."
 
-HTTP_URL="ht"
-HTTP_URL+="tp"
-HTTP_URL+="://"
-HTTP_URL+="$SERVER"
-HTTP_URL+="/"
-HTTP_CODE="$(curl -sS -o /dev/null -w '%{http_code}' -H 'Host: bakery.local' "$HTTP_URL" || true)"
+HTTP_URL="https://$SERVER/"
+HTTP_CODE="$(curl -sS -k -o /dev/null -w '%{http_code}' -H 'Host: bakery.falconsoftwares.com' "$HTTP_URL" || true)"
+
+if [ "$HTTP_CODE" != "200" ]; then
+    HTTP_CODE="$(curl -sS -k -L -o /dev/null -w '%{http_code}' --resolve "bakery.falconsoftwares.com:80:$SERVER" --resolve "bakery.falconsoftwares.com:443:$SERVER" "https://bakery.falconsoftwares.com/" || true)"
+fi
+
+if [ "$HTTP_CODE" != "200" ]; then
+    HTTP_CODE="$(curl -sS -k -L -o /dev/null -w '%{http_code}' --resolve "bakery.falconsoftwares.com:80:$SERVER" --resolve "bakery.falconsoftwares.com:443:$SERVER" "http://bakery.falconsoftwares.com/" || true)"
+fi
 
 if [ "$HTTP_CODE" != "200" ]; then
     echo "Homepage check failed: HTTP $HTTP_CODE"
