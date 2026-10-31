@@ -2,9 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::redirect('/', '/payments');
 
 // Update 2: a page listing the latest fee payments
 Route::get('/payments', function () {

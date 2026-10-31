@@ -48,7 +48,7 @@ jobs:
 
           check_app "Bakery" "bakery.local" "/" || failed=1
           check_app "RickshawGo" "rickshaw.local" "/api/health" || failed=1
-          check_app "Fees" "fees.local" "/" || failed=1
+          check_app "Fees" "fees.local" "/payments" || failed=1
           check_app "ChaiChat" "chat.local" "/" || failed=1
 
           if [ "$failed" -ne 0 ]; then

@@ -23,5 +23,8 @@ rsync -az -e ssh "$ROOT/fees/app/resources/views/payments.blade.php" \
 rsync -az -e ssh "$ROOT/fees/app/tests/Feature/PaymentsPageTest.php" \
   "$DEPLOY_TARGET:$REMOTE_DIR/tests/Feature/PaymentsPageTest.php"
 
+rsync -az -e ssh "$ROOT/fees/app/tests/Feature/ExampleTest.php" \
+  "$DEPLOY_TARGET:$REMOTE_DIR/tests/Feature/ExampleTest.php"
+
 ssh "$DEPLOY_TARGET" sudo /usr/local/sbin/deploy-fees \
   "$GITHUB_SHA" "$GITHUB_ACTOR" "$GITHUB_RUN_NUMBER"
