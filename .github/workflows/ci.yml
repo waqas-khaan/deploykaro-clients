@@ -1,4 +1,3 @@
-
 name: DeployKaro CI
 
 on:
@@ -16,7 +15,6 @@ jobs:
   rickshaw-tests:
     name: RickshawGo Node.js checks
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -36,7 +34,6 @@ jobs:
   laravel-tests:
     name: Ilm Academy Laravel tests
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -65,7 +62,6 @@ jobs:
   chaichat-check:
     name: ChaiChat Python checks
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -77,3 +73,60 @@ jobs:
 
       - name: Check Python syntax
         run: python -m py_compile chaichat/chaichat.py
+
+  deploy-bakery:
+    name: Deploy Bakery
+    runs-on: ubuntu-latest
+    needs:
+      - rickshaw-tests
+      - laravel-tests
+      - chaichat-check
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    env:
+      DEPLOY_TARGET: ${{ vars.DEPLOY_TARGET }}
+      DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+      DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy Bakery application
+        run: scripts/with-deploy-key.sh scripts/deploy-bakery.sh bakery "$DEPLOY_TARGET"
+
+  deploy-rickshaw:
+    name: Deploy RickshawGo
+    runs-on: ubuntu-latest
+    needs:
+      - rickshaw-tests
+      - laravel-tests
+      - chaichat-check
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    env:
+      DEPLOY_TARGET: ${{ vars.DEPLOY_TARGET }}
+      DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+      DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy RickshawGo v2.1
+        run: scripts/with-deploy-key.sh scripts/deploy-rickshaw.sh
+
+  deploy-fees:
+    name: Deploy Ilm Academy Fees
+    runs-on: ubuntu-latest
+    needs:
+      - rickshaw-tests
+      - laravel-tests
+      - chaichat-check
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    env:
+      DEPLOY_TARGET: ${{ vars.DEPLOY_TARGET }}
+      DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+      DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy Fees application
+        run: scripts/with-deploy-key.sh scripts/deploy-fees.sh

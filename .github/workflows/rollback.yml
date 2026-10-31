@@ -1,0 +1,46 @@
+name: Manual Deployment Rollback
+
+on:
+  workflow_dispatch:
+    inputs:
+      site:
+        description: Select application to roll back
+        required: true
+        type: choice
+        options:
+          - bakery
+
+permissions:
+  contents: read
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure deployment SSH
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          mkdir -p "$HOME/.ssh"
+          chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$DEPLOY_SSH_KEY" > "$HOME/.ssh/id_ed25519"
+          chmod 600 "$HOME/.ssh/id_ed25519"
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Roll back Bakery
+        if: inputs.site == 'bakery'
+        env:
+          DEPLOY_TARGET: ${{ vars.DEPLOY_TARGET }}
+        run: |
+          ssh "$DEPLOY_TARGET" 'bash -se' <<'REMOTE'
+          set -euo pipefail
+          BASE=/var/www/bakery
+          CURRENT=$(readlink -f "$BASE/current")
+          PREVIOUS=$(find "$BASE/releases" -mindepth 1 -maxdepth 1 -type d ! -path "$CURRENT" | sort | tail -n 1)
+          test -n "$PREVIOUS"
+          ln -s "$PREVIOUS" "$BASE/current.rollback"
+          mv -Tf "$BASE/current.rollback" "$BASE/current"
+          echo "Bakery rolled back to $PREVIOUS"
+          REMOTE

@@ -1,0 +1,41 @@
+name: Scheduled Deployment Health Check
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+    env:
+      DEPLOY_TARGET: ${{ vars.DEPLOY_TARGET }}
+      DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+      DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+    steps:
+      - name: Configure SSH
+        run: |
+          mkdir -p "$HOME/.ssh"
+          chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$DEPLOY_SSH_KEY" > "$HOME/.ssh/id_ed25519"
+          chmod 600 "$HOME/.ssh/id_ed25519"
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Check applications
+        run: |
+          ssh "$DEPLOY_TARGET" 'bash -s' <<'REMOTE'
+          set -euo pipefail
+          PROTOCOL=http
+          HOST=127.0.0.1
+
+          curl -fsS -H 'Host: bakery.local' "$PROTOCOL://$HOST/" >/dev/null
+          curl -fsS "$PROTOCOL://$HOST:3001/api/rickshaws/count" >/dev/null
+          curl -fsS "$PROTOCOL://$HOST:3002/api/rickshaws/count" >/dev/null
+          curl -fsS -H 'Host: fees.local' "$PROTOCOL://$HOST/payments" >/dev/null
+
+          echo "All application health checks passed."
+          REMOTE
