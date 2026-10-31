@@ -23,7 +23,10 @@ const rickshaws = [
 app.get('/', (req, res) => {
   res.send(`
     <h1>Welcome to RickshawGo!</h1>
+    <a href="/api/health"><button>Health Check</button></a>
+    <a href="/api/rickshaws"><button>All Rickshaws</button></a>
     <a href="/api/rickshaws/free"><button>Get Free Rickshaws</button></a>
+    <a href="/api/rickshaws/count"><button>Rickshaws Count</button></a>
   `);
 });
 
