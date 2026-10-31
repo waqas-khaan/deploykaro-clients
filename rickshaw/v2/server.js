@@ -20,6 +20,13 @@ const rickshaws = [
   { id: "PSH-150", area: "Board Bazaar", status: "free" },
 ];
 
+app.get('/', (req, res) => {
+  res.send(`
+    <h1>Welcome to RickshawGo!</h1>
+    <a href="/api/rickshaws/free"><button>Get Free Rickshaws</button></a>
+  `);
+});
+
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", version: "2.1", port: Number(PORT), pid: process.pid });
 });
