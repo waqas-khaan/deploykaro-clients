@@ -91,7 +91,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Deploy Bakery application
-        run: scripts/with-deploy-key.sh scripts/deploy-bakery.sh bakery "$DEPLOY_TARGET"
+        run: scripts/with-deploy-key.sh scripts/deploy-bakery.sh bakery/v2 "$DEPLOY_TARGET"
 
   deploy-rickshaw:
     name: Deploy RickshawGo
