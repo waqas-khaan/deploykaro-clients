@@ -23,6 +23,17 @@ chmod 600 "$TEMP_DIR/id_deploy"
 printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$TEMP_DIR/.ssh/known_hosts"
 chmod 600 "$TEMP_DIR/.ssh/known_hosts"
 
+cat > "$TEMP_DIR/.ssh/config" <<SSH_CONFIG
+Host *
+    BatchMode yes
+    StrictHostKeyChecking yes
+    UserKnownHostsFile $TEMP_DIR/.ssh/known_hosts
+    GlobalKnownHostsFile /dev/null
+    ConnectTimeout 10
+SSH_CONFIG
+
+chmod 600 "$TEMP_DIR/.ssh/config"
+
 export HOME="$TEMP_DIR"
 ssh-add "$TEMP_DIR/id_deploy"
 
