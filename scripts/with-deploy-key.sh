@@ -6,6 +6,8 @@ set -euo pipefail
 : "${DEPLOY_TARGET:?Missing DEPLOY_TARGET variable}"
 
 TEMP_DIR="$(mktemp -d)"
+ORIGINAL_HOME="$HOME"
+
 eval "$(ssh-agent -s)" >/dev/null
 
 cleanup() {
@@ -14,42 +16,36 @@ cleanup() {
 }
 trap cleanup EXIT
 
-mkdir -p "$TEMP_DIR/.ssh"
+mkdir -p "$TEMP_DIR/.ssh" "$TEMP_DIR/bin"
 chmod 700 "$TEMP_DIR/.ssh"
 
 printf '%s\n' "$DEPLOY_SSH_KEY" > "$TEMP_DIR/id_deploy"
-chmod 600 "$TEMP_DIR/id_deploy"
-
 printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$TEMP_DIR/.ssh/known_hosts"
-chmod 600 "$TEMP_DIR/.ssh/known_hosts"
+chmod 600 "$TEMP_DIR/id_deploy" "$TEMP_DIR/.ssh/known_hosts"
 
-cat > "$TEMP_DIR/.ssh/config" <<SSH_CONFIG
-Host *
-    BatchMode yes
-    StrictHostKeyChecking yes
-    UserKnownHostsFile $TEMP_DIR/.ssh/known_hosts
-    GlobalKnownHostsFile /dev/null
-    ConnectTimeout 10
-SSH_CONFIG
-
-chmod 600 "$TEMP_DIR/.ssh/config"
-
-export HOME="$TEMP_DIR"
 ssh-add "$TEMP_DIR/id_deploy"
 
-SSH_OPTIONS=(
-    -o BatchMode=yes
-    -o StrictHostKeyChecking=yes
-    -o UserKnownHostsFile="$TEMP_DIR/.ssh/known_hosts"
-    -o GlobalKnownHostsFile=/dev/null
-    -o ConnectTimeout=10
-)
+cat > "$TEMP_DIR/bin/ssh" <<'SSH_WRAPPER'
+#!/usr/bin/env bash
+exec /usr/bin/ssh \
+  -o BatchMode=yes \
+  -o StrictHostKeyChecking=yes \
+  -o UserKnownHostsFile="$DEPLOY_SSH_KNOWN_HOSTS" \
+  -o GlobalKnownHostsFile=/dev/null \
+  -o ConnectTimeout=10 \
+  "$@"
+SSH_WRAPPER
 
-ssh-keygen -F 16.176.178.205 -f "$TEMP_DIR/.ssh/known_hosts"
+chmod 700 "$TEMP_DIR/bin/ssh"
 
-ssh "${SSH_OPTIONS[@]}" "$DEPLOY_TARGET" "echo SSH_CONNECTION_OK"
+export DEPLOY_SSH_KNOWN_HOSTS="$TEMP_DIR/.ssh/known_hosts"
+export PATH="$TEMP_DIR/bin:$PATH"
 
-echo "SSH verification successful."
+echo "Checking SSH host key..."
+ssh-keygen -F 16.176.178.205 -f "$DEPLOY_SSH_KNOWN_HOSTS"
+
+echo "Testing SSH connection..."
+ssh "$DEPLOY_TARGET" "echo SSH_CONNECTION_OK"
+
 echo "Starting deployment..."
-
 "$@"
