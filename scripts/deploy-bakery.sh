@@ -39,15 +39,14 @@ echo "Uploading release: $RELEASE"
 ssh "$TARGET" "mkdir -p '$REMOTE_RELEASE'"
 rsync -az --delete "$SOURCE_DIR/" "$TARGET:$REMOTE_RELEASE/"
 
-ssh "$TARGET" bash -s -- "$RELEASE" "$REVISION_LINE" <<'REMOTE'
-set -euo pipefail
+REVISION_B64="$(printf '%s' "$REVISION_LINE" | base64 -w 0)"
 
+ssh "$TARGET" bash -s -- "$RELEASE" "$REVISION_B64" <<'REMOTE'
+set -euo pipefail
 BASE="/var/www/bakery"
 RELEASE="$1"
-REVISION_LINE="$2"
-
+REVISION_LINE="$(printf '%s' "$2" | base64 -d)"
 printf '%s\n' "$REVISION_LINE" > "$BASE/releases/$RELEASE/REVISION"
-
 ln -s "releases/$RELEASE" "$BASE/current.next"
 mv -Tf "$BASE/current.next" "$BASE/current"
 REMOTE
