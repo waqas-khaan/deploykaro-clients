@@ -10,11 +10,12 @@ permissions:
 
 jobs:
   health-check:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, deploykaro]
     env:
       DEPLOY_TARGET: ${{ vars.DEPLOY_TARGET }}
       DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
       DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+
     steps:
       - name: Configure SSH
         run: |
@@ -28,14 +29,32 @@ jobs:
       - name: Check applications
         run: |
           ssh "$DEPLOY_TARGET" 'bash -s' <<'REMOTE'
-          set -euo pipefail
-          PROTOCOL=http
-          HOST=127.0.0.1
+          set -u
 
-          curl -fsS -H 'Host: bakery.local' "$PROTOCOL://$HOST/" >/dev/null
-          curl -fsS "$PROTOCOL://$HOST:3001/api/rickshaws/count" >/dev/null
-          curl -fsS "$PROTOCOL://$HOST:3002/api/rickshaws/count" >/dev/null
-          curl -fsS -H 'Host: fees.local' "$PROTOCOL://$HOST/payments" >/dev/null
+          check_app() {
+            name="$1"
+            host="$2"
+            path="$3"
+
+            code=$(curl -sS -o /dev/null -w '%{http_code}' --connect-timeout 5 --max-time 15 -H "Host: $host" "http:"'//127.0.0.1"$path") || code=000
+
+            echo "$name: HTTP $code"
+
+            if [ "$code" != "200" ]; then
+              return 1
+            fi
+          }
+          failed=0
+
+          check_app "Bakery" "bakery.local" "/" || failed=1
+          check_app "RickshawGo" "rickshaw.local" "/api/health" || failed=1
+          check_app "Fees" "fees.local" "/" || failed=1
+          check_app "ChaiChat" "chat.local" "/" || failed=1
+
+          if [ "$failed" -ne 0 ]; then
+            echo "One or more application health checks failed."
+            exit 1
+          fi
 
           echo "All application health checks passed."
           REMOTE
